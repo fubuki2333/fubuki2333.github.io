@@ -5,17 +5,13 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>我的第一篇博客文章 - Hexo</title>
+    <title>如何防止SQL注入 - Hexo</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="第一章内容
-
-第二章内容
-
-参考文献www.bilibili.com
-"> 
+    <meta name="description" content="sql注入是一种十分简单的对数据库数据进行攻击的一种手段，如下所示：
+1234567private String getNameByUserId(String userId) &amp;#123;    C,"> 
     <meta name="author" content="John Doe"> 
     <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
     <link rel="icon" href="/blog/img/favicon.png"> 
@@ -45,7 +41,7 @@
     <div class="bar" style="width: 0;"></div>
     <a class="icon-home image-icon" href="javascript:;" data-url="https://fubuki1024.gitee.io/blog"></a>
     <div title="播放/暂停" class="icon-play"></div>
-    <h3 class="subtitle">我的第一篇博客文章</h3>
+    <h3 class="subtitle">如何防止SQL注入</h3>
     <div class="social">
         <!--<div class="like-icon">-->
             <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
@@ -63,18 +59,30 @@
     <div class="section">
         <div class="article">
     <div class='main'>
-        <h1 class="title">我的第一篇博客文章</h1>
+        <h1 class="title">如何防止SQL注入</h1>
         <div class="stuff">
             <span>二月 26, 2020</span>
             
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/blog/tags/SQL/" rel="tag">SQL</a></li></ul>
+
 
         </div>
         <div class="content markdown">
-            <h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><p>内容</p>
-<hr>
-<h2 id="第二章"><a href="#第二章" class="headerlink" title="第二章"></a>第二章</h2><p>内容</p>
-<hr>
-<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p><a href="http://www.bilibili.com" target="_blank" rel="noopener">www.bilibili.com</a></p>
+            <p>sql注入是一种十分简单的对数据库数据进行攻击的一种手段，如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> String <span class="title">getNameByUserId</span><span class="params">(String userId)</span> </span>&#123;</span><br><span class="line">    Connection conn = getConn();<span class="comment">//获得连接</span></span><br><span class="line">    String sql = <span class="string">"select name from user where id="</span> + userId;</span><br><span class="line">    PreparedStatement pstmt = conn.prepareStatement(sql);</span><br><span class="line">    ResultSet rs=pstmt.executeUpdate();</span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当传入的参数为：”3;drop table user;”时，<br>执行时的语句就是：select name from user where id=3;drop table user;<br>这对于数据来说是非常危险的。</p>
+<p>如何避免sql注入呢？<br>1、遵循编程规范，首先执行预编译，随后再填写参数，这样参数会替换掉编译好的语句中的？占位符，最后执行完整的sql语句。<br>    例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Connection conn = getConn();<span class="comment">//获得连接</span></span><br><span class="line">String sql = <span class="string">"select name from user where id= ?"</span>;</span><br><span class="line">PreparedStatement pstmt = conn.prepareStatement(sql);</span><br><span class="line">pstmt.setString(<span class="number">1</span>, userId);</span><br><span class="line">ResultSet rs=pstmt.executeUpdate();</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>​    还是上边的参数：”3;drop table user;”<br>​    最后执行语句就会是：select name from user where id=”3;drop table user;”。 避免了sql注入。</p>
+<p>2、使用存储过程。<br>   存储过程（Stored Procedure）是一组完成特定功能的SQL语句集，经编译后存储在数据库中，用户通过调用存储过程并给定参数（如果该存储过程带有参数）就可以执行它，也可以避免SQL注入攻击<br>    例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Connection conn = getConn();</span><br><span class="line">stmt = conn.prepareCall(<span class="string">"&#123;call name_from_user(?,?)&#125;"</span>);</span><br><span class="line">stmt.setInt(<span class="number">1</span>,<span class="number">2</span>);</span><br><span class="line">stmt.registerOutParameter(<span class="number">2</span>, Types.VARCHAR);</span><br><span class="line">stmt.execute();</span><br><span class="line">String name= stmt.getString(<span class="number">2</span>);</span><br></pre></td></tr></table></figure>
+
+<p>存储过程如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> <span class="keyword">user</span>;</span><br><span class="line">delimiter //</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">procedure</span> name_from_user(<span class="keyword">in</span> user_id <span class="built_in">int</span>,<span class="keyword">out</span> user_name <span class="built_in">varchar</span>(<span class="number">20</span>))</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">name</span> <span class="keyword">into</span> user_name <span class="keyword">from</span> <span class="keyword">user</span> <span class="keyword">where</span> <span class="keyword">id</span>=user_id;</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line">//</span><br><span class="line">delimiter;</span><br></pre></td></tr></table></figure>
+
+<p>3、mybatis半自动持久化框架，其底层原理也是预编译，参数替换占位符？<br>    注意：<br>        在编写MyBatis的映射语句时，尽量采用“#{xxx}”这样的格式。若不得不使用“${xxx}”这样的参数，要手工地做好过滤工作，来防止SQL注入攻击。<br>        #{}：相当于JDBC中的PreparedStatement<br>        ${}：是输出变量的值<br>        简单说，#{}是经过预编译的，是安全的；${}是未经过预编译的，仅仅是取变量的值，是非安全的，存在SQL注入。</p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
@@ -109,7 +117,7 @@
     </div>
     
         <div class='side'>
-            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#第一章"><span class="toc-number">1.</span> <span class="toc-text">第一章</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第二章"><span class="toc-number">2.</span> <span class="toc-text">第二章</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文献"><span class="toc-number">3.</span> <span class="toc-text">参考文献</span></a></li></ol>
+            
         </div>
     
 </div>
