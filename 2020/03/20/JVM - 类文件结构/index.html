@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+<html lang="en" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JVM - 类文件结构 - Hexo</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="一、无关性的基石JVM只与Class文件有关，与使用的开发语言无关，JVM虚拟机不与任何语言绑定。
+二、Class类文件的结构任何一个Class文件都对应着唯一一个类或接口的定义信息，但类或接口不一,"> 
+    <meta name="author" content="John Doe"> 
+    <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
+    <link rel="icon" href="/blog/img/favicon.png"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+<link rel="stylesheet" href="/blog/css/diaspora.css">
+
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads"
+        src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">Hexo</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;" data-url="https://fubuki1024.gitee.io/blog"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">JVM - 类文件结构</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">JVM - 类文件结构</h1>
+        <div class="stuff">
+            <span>三月 20, 2020</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <h2 id="一、无关性的基石"><a href="#一、无关性的基石" class="headerlink" title="一、无关性的基石"></a>一、无关性的基石</h2><p>JVM只与Class文件有关，与使用的开发语言无关，JVM虚拟机不与任何语言绑定。</p>
+<h2 id="二、Class类文件的结构"><a href="#二、Class类文件的结构" class="headerlink" title="二、Class类文件的结构"></a>二、Class类文件的结构</h2><p>任何一个Class文件都对应着唯一一个类或接口的定义信息，但类或接口不一定都得定义在文件中，也可以是以8位字节为基础单位的二进制流。</p>
+<p>Class文件格式采用一种类似于C语言结构体的伪结构来存储数据，只有两种数据类型：无符号数和表。</p>
+<p>无符号数：描述数字、索引引用、数量值或者按照UTF-8编码构成字符串值。</p>
+<p>表：由多个无符号数或者其他表作为数据项构成的复合数据类型，所有表习惯性地以“_info”结尾。</p>
+<h3 id="魔数"><a href="#魔数" class="headerlink" title="魔数"></a>魔数</h3><p>定义：每个Class文件的头4个字节。</p>
+<p>作用：确定这个文件是否为一个能被虚拟机接收的Class文件。</p>
+<p>紧接着魔数的4个字节：第5 6个字节是次版本号，第7 8个字节是主版本号。</p>
+<h3 id="常量池"><a href="#常量池" class="headerlink" title="常量池"></a>常量池</h3><p>紧接着主次版本号之后的就是常量池入口，Class文件之中的资源仓库，是与其他项目关联最多的数据类型，也是占用空间最大的数据项目之一，还是第一个出现的表类型数据项目。</p>
+<p>常量数量不固定，需要在入口放置一项u2类型的数据，代表常量池容量计数值，从1开始。</p>
+<p>常量池中主要存放两大类常量：字面量和符号引用。字面量接近于Java语言的常量概念；符号引用属于编译原理方面的概念，包含类和接口的全限定名、字段的名称和描述符、方法的名称和描述符。</p>
+<p>虚拟机运行时，从常量池获得对应的符号引用，在类的创建时或运行时解析、翻译到具体的内存地址中。</p>
+<p>每一个常量都是一个表，共有14种，每个表开始的第一位是一个u1类型的标志位，代表当前这个变量属于哪种类型常量。</p>
+<h3 id="访问标志"><a href="#访问标志" class="headerlink" title="访问标志"></a>访问标志</h3><p>常量池结束后，紧接着的两个字节表示访问标志，用于识别一些类或接口层次的访问信息，包括：是类/接口；是否是public；是否是abstract；是否声明final等。</p>
+<h3 id="类索引、父类索引与接口索引集合"><a href="#类索引、父类索引与接口索引集合" class="headerlink" title="类索引、父类索引与接口索引集合"></a>类索引、父类索引与接口索引集合</h3><p>类索引和父类索引都是u2类型数据，接口索引集合是一组u2类型的数据的集合。</p>
+<h3 id="字段表集合"><a href="#字段表集合" class="headerlink" title="字段表集合"></a>字段表集合</h3><p>字段表用于描述接口或类中声明的变量，字段包括类级变量以及实例级变量，但不包括在方法内部声明的局部变量。</p>
+<p>各个修饰符都是布尔值，要么有要么没有，很适合用标志位来表示。而字段叫什么名字、字段被定义为什么数据类型，都是无法固定的，只能引用常量池中的常量来描述。</p>
+<h3 id="方法表集合"><a href="#方法表集合" class="headerlink" title="方法表集合"></a>方法表集合</h3><p>包括访问标志、名称索引、描述符索引、属性表集合几项。</p>
+<p>要重载一个方法，除了要与原方法具有相同的简单名称之外，还要求必须拥有一个与原方法不同的特征签名，特征签名就是一个方法中各个参数在常量池中的字段符号引用的集合，返回值不会包含在特征签名中。</p>
+<h3 id="属性表集合"><a href="#属性表集合" class="headerlink" title="属性表集合"></a>属性表集合</h3><p>不要求各个属性表具有严格的顺序，并且只要不与已有属性名重复，任何人实现的编译器都可以向属性表中写入自己定义的属性信息，Java虚拟机会忽略它不认识的属性。</p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        
+                            <li title='0' data-url='http://link.hhtjim.com/163/5146554.mp3'></li>
+                        
+                    
+                        
+                            <li title='1' data-url='http://link.hhtjim.com/qq/001faIUs4M2zna.mp3'></li>
+                        
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、无关性的基石"><span class="toc-number">1.</span> <span class="toc-text">一、无关性的基石</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Class类文件的结构"><span class="toc-number">2.</span> <span class="toc-text">二、Class类文件的结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#魔数"><span class="toc-number">2.1.</span> <span class="toc-text">魔数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#常量池"><span class="toc-number">2.2.</span> <span class="toc-text">常量池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#访问标志"><span class="toc-number">2.3.</span> <span class="toc-text">访问标志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#类索引、父类索引与接口索引集合"><span class="toc-number">2.4.</span> <span class="toc-text">类索引、父类索引与接口索引集合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#字段表集合"><span class="toc-number">2.5.</span> <span class="toc-text">字段表集合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方法表集合"><span class="toc-number">2.6.</span> <span class="toc-text">方法表集合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#属性表集合"><span class="toc-number">2.7.</span> <span class="toc-text">属性表集合</span></a></li></ol></li></ol>
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+
+
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/blog/js/plugin.js"></script>
+<script src="/blog/js/diaspora.js"></script>
+
+
+<link rel="stylesheet" href="/blog/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/blog/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/blog/photoswipe/photoswipe.min.js"></script>
+<script src="/blog/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>
